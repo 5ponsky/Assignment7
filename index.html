@@ -1,39 +1,435 @@
-<html><head>
-<script type="text/javascript">
+<!DOCTYPE html>
 
-function httpPost(url, payload, callback) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function() {
-    if(request.readyState == 4) {
-      if(request.status == 200)
-        callback(request.responseText);
-      else
-      {
-        if(request.status == 0 && request.statusText.length == 0)
-          alert("Connection failed");
-        else
-          alert("Server returned status " + request.status +
-            ", " + request.statusText);
+<html>
+  <head>
+
+  </head>
+
+  <!-- Begin -->
+  <body>
+    <div style="width: 800px; height: 500px;">
+      <!--
+        <iframe src="game.html" height="500" width="500"  scrolling="no" style="border:none; overflow: hidden;">
+        </iframe>
+        <iframe src="chat.html" height="500" width="300"  scrolling="no" style="border:none; overflow: hidden;">
+        </iframe>
+      -->
+
+      <!-- Game portion of the interface -->
+      <div id="game" oncontextmenu="return false;" style="width: 500px; height: 500px; float: left; border:none; overflow: hidden;" scrolling="no">
+        <canvas id="myCanvas" width="500" height="500" background-color="#87CEEB"></canvas>
+      </div>
+
+
+      <!-- Chatting portion of the interface -->
+      <div id="chat" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
+
+        <!-- Chat Window -->
+        <form>
+          <select id="history" size="20" style="height: 100%; width: 100%; overflow: hidden;">
+          </select>
+        </form>
+
+        <!-- Chatbox and Send button prototypes -->
+        <input type="text" id="message" name="msg">
+        <button type="button" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+
+      //
+      // Communicate with the Web Server
+      //
+
+      function httpPost(url, payload, callback) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+          if(request.readyState == 4) {
+            if(request.status == 200)
+              callback(request.responseText);
+            else
+            {
+              if(request.status == 0 && request.statusText.length == 0)
+                console.log("No partner to send message to!");
+              else
+                alert("Server returned status " + request.status +
+                  ", " + request.statusText);
+            }
+          }
+        };
+        request.open('post', url, true);
+        request.setRequestHeader('Content-Type',
+          'application/x-www-form-urlencoded');
+        request.send(payload);
       }
-    }
-  };
-  request.open('post', url, true);
-  request.setRequestHeader('Content-Type',
-    'application/x-www-form-urlencoded');
-  request.send(payload);
-}
 
-function cb(response) {
-  alert("The back-end server replied: " + response);
-}
+      function cb(response) {
+        if(response[0] == 's')
+          controller.model.impulse();
+        else if(response[0] == 'c') {
+          response = response.slice(1, response.length);
+        }
+      }
 
-function sayhi() {
-  var msg = document.getElementById("mymessage");
-  httpPost("ajax_handler.html", msg.value, cb);
-}
+      function init(data) {
+        httpPost("ajax_handler.html", data, cb);
+      }
 
-</script>
-</head><body>
-  <input type="text" id="mymessage" value="hi">
-  <input type="button" onclick="sayhi();" value="send">
-</body></html>
+      //
+      // The implementation for the chat mechanic
+      //
+
+      function sendMessage() {
+        var x = document.getElementById("history");
+        var option = document.createElement("option");
+        var msg = document.getElementById("message");
+        if(msg.value != "") {
+          option.text = msg.value;
+          x.add(option);
+          x.scrollTop = x.scrollHeight;
+          init("c" + msg.value);
+          msg.value = "";
+        }
+      }
+
+
+      //
+      // Then the game
+      //
+
+      //
+      // Load all images first
+      //
+      let cloud_image, open_hand_image, closed_hand_image,
+          tube_up_image, tube_down_image,
+          bird_up_image, bird_down_image, chuck_image;
+
+      // Get Image Data
+      try {
+        up1_bird_image = new Image();
+        up1_bird_image.src = "bird1.png";
+
+        down1_bird_image = new Image();
+        down1_bird_image.src = "bird2.png";
+
+        up2_bird_image = new Image();
+        up2_bird_image.src = "bird1_mirror.png";
+
+        down2_bird_image = new Image();
+        down2_bird_image.src = "bird2_mirror.png";
+
+        spikes_image = new Image();
+        spikes_image.src = "spikes.png";
+
+      } catch (e) {
+        console.log(e);
+      }
+
+      //
+      // Collision Detection
+      //
+      function collisionDetected(a, b) {
+
+        if(a.x_pos + a.imageW < b.x_pos) // right -> left collision
+          return false;
+        if(a.x_pos > b.x_pos + b.imageW) // left -> right collision
+          return false;
+        if(a.y_pos + a.imageH < b.y_pos) // bottom -> top collision
+          return false;
+        if(a.y_pos > b.y_pos + b.imageH) // top -> bottom collision
+          return false;
+
+        console.log("HIT!");
+        return true;
+      }
+
+
+
+      // ******************************
+      // ********* Random *************
+      // ******************************
+
+      // Returns a value between 0 and "max" (inclusive)
+      function intRandom(max) {
+        return Math.random() * max;
+      }
+
+      function boolRandom() {
+        if(Math.random() > 0.5)
+          return true;
+        else
+          return false;
+      }
+
+
+
+      // ******************************
+      // ******* Spikes ****************
+      // ******************************
+      function Spikes() {
+        this.x_pos = 0;
+        this.y_pos = 0;
+      }
+
+      Spikes.prototype.update = function () {
+        this.imageW = spikes_image.naturalWidth;
+        this.imageH = spikes_image.naturalHeight;
+      };
+
+      Spikes.prototype.returnImage = function () { return spikes_image; };
+
+
+
+      // ******************************
+      // ********** Bird1 **************
+      // ******************************
+      function Bird1(model) {
+        this.model = model;
+        this.flapped = false;
+        this.allowDamageWhenZero = 0;
+        this.gravity = -6.5;
+        this.x_pos = 5;
+        this.y_pos = 250;
+        this.energy = 100;
+        this.knockback = 0;
+      }
+
+      Bird1.prototype.update = function () {
+        this.imageW = up1_bird_image.naturalWidth;
+        this.imageH = up1_bird_image.naturalHeight;
+
+        // Check if we collide with spikes or the other bird
+        for (let i = 0; i < this.model.sprites.length; ++i) {
+          if(this != this.model.sprites[i]) {
+            if(collisionDetected(this, this.model.sprites[i])) {
+              if(this.model.sprites[i] instanceof Spikes) {
+                  this.gravity = 12.0;
+                  this.y_pos = 55;
+                  ++this.model.p1Points;
+              } else {
+                console.log("ere");
+              }
+            }
+          }
+        }
+
+        // Simulate gravity
+        this.gravity = this.gravity + 0.4;
+        this.y_pos = this.y_pos + this.gravity;
+        --this.flapCounter;
+
+        // Move towards the right, and reset if off-screen
+        this.x_pos = this.x_pos + 4 + this.knockback;
+        if(this.x_pos >= 500) {
+          this.x_pos = 0;
+        }
+
+        // Simulate a game "ceiling"
+        if(this.y_pos < 0) {
+          this.y_pos = 0;
+          this.gravity = 0;
+        }
+
+        // Simulate a game "floor"
+        if(this.y_pos + this.imageH > 500) {
+          this.y_pos = 500 - this.imageH;
+          this.gravity = -1;
+        }
+
+        return false;
+      };
+
+      Bird1.prototype.flap = function () {
+        if(this.energy > 0) {
+          this.gravity = this.gravity - 4.5;
+          this.y_pos = this.y_pos - this.gravity;
+          this.flapCounter = 3;
+          this.up = true;
+        } else
+          this.energy = 0;
+      };
+
+      Bird1.prototype.returnImage = function () {
+        if(this.flapCounter > 0)
+          return down1_bird_image;
+        else
+          return up1_bird_image;
+      };
+
+      // ******************************
+      // ********** Bird2 **************
+      // ******************************
+      function Bird2(model) {
+        this.model = model;
+        this.flapped = false;
+        this.allowDamageWhenZero = 0;
+        this.gravity = -6.5;
+        this.x_pos = 431;
+        this.y_pos = 250;
+        this.energy = 100;
+      }
+
+      Bird2.prototype.update = function () {
+        this.imageW = down2_bird_image.naturalWidth;
+        this.imageH = down2_bird_image.naturalHeight;
+
+        // Simulate gravity
+        this.gravity = this.gravity + 0.4;
+        this.y_pos = this.y_pos + this.gravity;
+        --this.flapCounter;
+
+        // Move towards the left, and reset if off-screen
+        this.x_pos = this.x_pos - 4;
+        if(this.x_pos + this.imageW <= 0) {
+          this.x_pos = 500;
+        }
+
+        // Simulate a game "ceiling"
+        if(this.y_pos < 0) {
+          this.y_pos = 0;
+          this.gravity = 0;
+        }
+
+        // Simulate a game "floor"
+        if(this.y_pos + this.imageH >= 500) {
+          this.y_pos = 500 - this.imageH;
+          this.gravity = -1;
+        }
+
+        return false;
+      };
+
+      Bird2.prototype.flap = function () {
+        if(this.energy > 0) {
+          this.gravity = this.gravity - 4.5;
+          this.y_pos = this.y_pos - this.gravity;
+          this.flapCounter = 3;
+          this.up = true;
+        } else
+          this.energy = 0;
+      };
+
+      Bird2.prototype.returnImage = function () {
+        if(this.flapCounter > 0)
+          return down2_bird_image;
+        else
+          return up2_bird_image;
+      };
+
+
+      // ******************************
+      // ******* Model ****************
+      // ******************************
+      function Model() {
+        this.p1Points = 0;
+        this.p2Points = 0;
+        this.spikes = new Spikes();
+        this.bird1 = new Bird1(this);
+        this.bird2 = new Bird2(this);
+        this.sprites = [];
+
+        this.sprites.push(this.spikes);
+        this.sprites.push(this.bird1);
+        //this.sprites.push(this.bird2);
+      }
+
+      // Update the model
+      Model.prototype.update = function () {
+
+        // Iterate the list of sprites
+        for (let i = 0; i < this.sprites.length; ++i) {
+          this.sprites[i].update();
+          // if(this.sprites[i].update()) { this.sprites.splice(i, 1); }
+        }
+        init("n");
+      };
+
+      // flap bird1 wings
+      Model.prototype.onClick = function () {
+        this.bird1.flap();
+      };
+
+      // flap bird2 wings
+      Model.prototype.impulse = function () {
+        this.bird2.flap();
+      };
+
+
+      // ******************************
+      // *********** View *************
+      // ******************************
+      function View(model) {
+        this.model = model;
+        this.canvas = document.getElementById("myCanvas");
+      }
+
+      // Draw the game to the screen
+      View.prototype.update = function () {
+        let ctx = this.canvas.getContext("2d");
+        ctx.clearRect(0, 0, 500, 500);
+        ctx.fillStyle="#80FFFF";
+        ctx.fillRect(0, 0, 500, 500);
+
+        // Draw Sprites
+        for (let i = 0; i < this.model.sprites.length; ++i) {
+          // JS won't always load the image if you place the method call inline
+          //so sometimes we need to put it in a variable first.
+          let img = this.model.sprites[i].returnImage();
+          ctx.drawImage(img, this.model.sprites[i].x_pos, this.model.sprites[i].y_pos);
+        }
+  /*
+        // Draw energy bar
+        ctx.strokeRect(425, 200, 76, 201);
+
+        ctx.fillStyle="#00FF00";
+        ctx.fill();
+        ctx.fillRect(425, 200, 75, 2 * this.model.bird.energy);
+  */
+      };
+
+
+      // ******************************
+      // ******* Controller ***********
+      // ******************************
+      function Controller(model, view) {
+        this.model = model;
+        this.view = view;
+        let self = this;
+
+        view.canvas.addEventListener("click", function(event) { self.onClick(event); });
+        view.canvas.addEventListener("contextmenu", function(event) { self.onClick(event); });
+      }
+
+      Controller.prototype.onClick = function (event) {
+        if(event.which === 1) // 1 == LMB
+          init("s");
+          this.model.onClick();
+        //else if(event.which === 3) //  3 == RMB
+          //this.model.sendChuck();
+      };
+
+
+
+      // ******************************
+      // ******* Game *****************
+      // ******************************
+      function Game() {
+        this.model = new Model();
+        this.view = new View(this.model);
+        this.controller = new Controller(this.model, this.view);
+      }
+
+      Game.prototype.onTimer = function () {
+        this.model.update();
+        this.view.update();
+      };
+
+      // So the story goes...
+      let game = new Game();
+      let timer = setInterval(function() {
+        game.onTimer();
+      }, 40);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <body>
+
+    <form>
+      <select id="history" size="20" style="height: 300px; width: 100%; overflow: hidden;">
+      </select>
+    </form>
+    <br>
+
+    <input type="text" id="message" name="msg">
+    <button type="button" onclick="sendMessage()">Send</button>
+
+    <script>
+      function sendMessage() {
+        var x = document.getElementById("history");
+        var option = document.createElement("option");
+        var msg = document.getElementById("message");
+        if(msg.value != "") {
+          option.text = msg.value;
+          x.add(option);
+          x.scrollTop = x.scrollHeight;
+        }
+        msg.value = "";
+      }
+      </script>
+
+  </body>
+</html>
