@@ -69,7 +69,11 @@
           controller.model.impulse();
         else if(response[0] == 'c') {
           response = response.slice(1, response.length);
-        }
+		  x.add(response);
+		  x.scrollTop = x.scrollHeight;
+        } else {
+		  loadImages();
+		}
       }
 
       function init(data) {
@@ -101,30 +105,37 @@
       //
       // Load all images first
       //
-      let cloud_image, open_hand_image, closed_hand_image,
+      var cloud_image, open_hand_image, closed_hand_image,
           tube_up_image, tube_down_image,
           bird_up_image, bird_down_image, chuck_image;
 
       // Get Image Data
-      try {
-        up1_bird_image = new Image();
-        up1_bird_image.src = "bird1.png";
+	  function loadImages() {
+	    try {
+			up1_bird_image = new Image();
+			up1_bird_image.onload = function() { console.log("up1_bird_image loaded!"); }
+			up1_bird_image.src = "bird1.png";
 
-        down1_bird_image = new Image();
-        down1_bird_image.src = "bird2.png";
+			down1_bird_image = new Image();
+			down1_bird_image.onload = function() { console.log("down1_bird_image loaded!"); }
+			down1_bird_image.src = "bird2.png";
 
-        up2_bird_image = new Image();
-        up2_bird_image.src = "bird1_mirror.png";
+			up2_bird_image = new Image();
+			up2_bird_image.onload = function() { console.log("up2_bird_image loaded!"); }
+			up2_bird_image.src = "bird1_mirror.png";
 
-        down2_bird_image = new Image();
-        down2_bird_image.src = "bird2_mirror.png";
+			down2_bird_image = new Image();
+			down2_bird_image.onload = function() { console.log("down2_bird_image loaded!"); }
+			down2_bird_image.src = "bird2_mirror.png";
 
-        spikes_image = new Image();
-        spikes_image.src = "spikes.png";
+			spikes_image = new Image();
+			spikes_image.onload = function() { console.log("spikes_image loaded!"); }
+			spikes_image.src = "spikes.png";
 
-      } catch (e) {
+		} catch (e) {
         console.log(e);
-      }
+		}
+	  }
 
       //
       // Collision Detection
@@ -426,6 +437,7 @@
       };
 
       // So the story goes...
+	  loadImages();
       let game = new Game();
       let timer = setInterval(function() {
         game.onTimer();
