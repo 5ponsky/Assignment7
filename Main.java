@@ -1,5 +1,5 @@
 //
-// Bare-bones Java web server
+ // Bare-bones Java web server
 //
 
 import java.awt.Desktop;
@@ -8,9 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.*;
 import java.net.URI;
-import java.util.Date;
+import java.util.StringTokenizer;
 
 class Main {
+	static File file;
+	static String mime;
+	//String name = new String(file.toString());
 
 	// Load the page from the webserver
 	static String readFile(String path) throws IOException {
@@ -46,15 +49,25 @@ class Main {
 			int contentLength = 0;
 			while ((inputLine = in.readLine()) != null) {
 
-				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST"))
+				//StringTokenizer st = new StringTokenizer(inputLine, " ");
+				
+				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
 					post = true;
+					String s = inputLine;
+					s = inputLine.substring(6, inputLine.length());
+					String[] parts = s.split(" ");
+					s = parts[0];
+					System.out.println("The file thingy is " + s + "\r\n");
+				} else {
+					file = new File("stuff.html");
+				}
 				if(inputLine.length() >= 14 && inputLine.substring(0, 14).equals("Content-Length"))
 					contentLength = Integer.parseInt(inputLine.substring(16));
 				System.out.println("The client said: " + inputLine);
 				if(inputLine.length() < 2)
 					break;
 			}
-			char[] postedContent = null;
+			char[] postedContent = null; 
 			if(post && contentLength > 0)
 			{
 				// Read the POST content
@@ -63,13 +76,15 @@ class Main {
 			}
 
 			// Whatever data we want to send
-			String payload = readFile("index.html");
+			String payload = readFile(file.toString());
+			
 
 			// Send HTTP headers
 			System.out.println("Sending a response...");
 			out.print("HTTP/1.1 200 OK\r\n");
-			out.print("Content-Type: text/html\r\n");
+			out.print("Content-Type: " + "text/html" + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
+			out.print("Set-Cookie: " + "some cookie" + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 
@@ -79,3 +94,22 @@ class Main {
 		}
 	}
 }
+
+/*
+ * 				while(st.hasMoreTokens()) {
+					String s = st.nextToken();
+					if(s.contains("/")) {
+						System.out.println(s);
+						s = s.substring(1);
+						if(s.equals("")) {
+							file = new File("stuff.html");
+							mime = Files.probeContentType(file.toPath());
+						} else {
+							file = new File(s);
+							System.out.println(s);
+							mime = Files.probeContentType(file.toPath());
+						}
+					}
+						
+				}
+*/

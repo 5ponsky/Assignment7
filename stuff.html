@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+
+  </head>
+
+  <!-- Begin -->
+  <body>
+    <div style="width: 800px; height: 500px;">
+
+      <!-- Game portion of the interface -->
+      <div id="game" oncontextmenu="return false;" style="width: 500px; height: 500px; float: left; border:none; overflow: hidden;" scrolling="no">
+        <canvas id="myCanvas" width="500" height="500" background-color="#87CEEB"></canvas>
+      </div>
+
+
+      <!-- Chatting portion of the interface -->
+      <div id="chat" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
+
+        <!-- Chat Window -->
+        <form>
+          <select id="history" size="20" style="height: 100%; width: 100%; overflow: hidden;">
+          </select>
+        </form>
+
+        <!-- Chatbox and Send button prototypes -->
+        <input type="text" id="message" name="msg">
+        <button type="button" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+
+      //
+      // Communicate with the Web Server
+      //
+
+      function httpPost(url, payload, callback) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+          if(request.readyState == 4) {
+            if(request.status == 200)
+              callback(request.responseText);
+            else
+            {
+              if(request.status == 0 && request.statusText.length == 0)
+                console.log("No partner to send message to!");
+              else
+                alert("Server returned status " + request.status +
+                  ", " + request.statusText);
+            }
+          }
+        };
+        request.open('post', url, true);
+        request.setRequestHeader('Content-Type',
+          'application/x-www-form-urlencoded');
+        request.send(payload);
+      }
+
+      function cb(response) {
+        var x = document.getElementById("history");
+        var option = document.createElement("option");
+        console.log(response.responseText);
+        option.text = response.responseText;
+        x.add(option);
+  		  x.scrollTop = x.scrollHeight;
+      }
+
+      function update(data) {
+        httpPost("stuasdfasdfasdfasdfff.html", data.value, cb);
+        //httpPost("ajax_handler.html", data, cb);
+      }
+
+      //
+      // The implementation for the chat mechanic
+      //
+
+      function sendMessage() {
+        var msg = document.getElementById("message");
+        if(msg.value != "") {
+          update(msg);
+          msg.value = "";
+        }
+      }
