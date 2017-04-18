@@ -53,13 +53,16 @@ class Main {
 				
 				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
 					post = true;
+					
 					String s = inputLine;
 					s = inputLine.substring(6, inputLine.length());
 					String[] parts = s.split(" ");
 					s = parts[0];
-					System.out.println("The file thingy is " + s + "\r\n");
+					file = new File(s);
+					mime = Files.probeContentType(file.toPath());
 				} else {
 					file = new File("stuff.html");
+					mime = Files.probeContentType(file.toPath());
 				}
 				if(inputLine.length() >= 14 && inputLine.substring(0, 14).equals("Content-Length"))
 					contentLength = Integer.parseInt(inputLine.substring(16));
