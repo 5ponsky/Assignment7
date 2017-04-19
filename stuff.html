@@ -20,13 +20,14 @@
 
         <!-- Chat Window -->
         <form>
-          <select id="history" size="20" style="height: 100%; width: 100%; overflow: hidden;">
+          <select id="history" size="20" form="chat" style="height: 100%; width: 100%; overflow: hidden;">
           </select>
+
+          <!-- Chatbox and Send button prototypes -->
+          <input type="text" name="message" id="msg">
+          <input type="submit" onclick="sendMessage()" value="Send">
         </form>
 
-        <!-- Chatbox and Send button prototypes -->
-        <input type="text" id="message" name="msg">
-        <button type="button" onclick="sendMessage()">Send</button>
       </div>
     </div>
 
@@ -41,9 +42,7 @@
         request.onreadystatechange = function() {
           if(request.readyState == 4) {
             if(request.status == 200) {
-              console.log(request);
-              //callback(request.responseText);
-              callback("fag");
+              callback(request.responseText);
             } else {
               if(request.status == 0 && request.statusText.length == 0)
                 console.log("No partner to send message to!");
@@ -69,17 +68,21 @@
         xmlHttp.send(null);
       }
 
-      function cb(response) {
+      function updateFrontEnd(response) {
+
+        document.getElementById("history").innerHTML='<object type="text/html" data="chat_history.html"></object>';
+        console.log(reponse);
         //console.log(response.responseText);
         var x = document.getElementById("history");
         var option = document.createElement("option");
-        option.text = response.value; //response.responseText;
-        x.add(option);
+        //option.text = response.value; //response.responseText;
+        x.add(response);
   		  x.scrollTop = x.scrollHeight;
       }
 
-      function update(data) {
-        httpPost("stuff.html", data.value, cb);
+      function sendToBackEnd(data) {
+        console.log(data);
+        httpPost("stuff.html", "<option>" + data.value + "</option>", updateFrontEnd);
         //httpGet("stuff.html", cb);
       }
 
@@ -88,9 +91,13 @@
       //
 
       function sendMessage() {
-        var msg = document.getElementById("message");
+        var msg = document.getElementById("msg");
+        console.log(msg.value);
         if(msg.value != "") {
-          update(msg);
+          sendToBackEnd(msg);
           msg.value = "";
         }
       }
+    </script>
+  </body>
+</html>

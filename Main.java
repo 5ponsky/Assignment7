@@ -28,12 +28,12 @@ class Main {
 		// Listen for a connection from a client
 		ServerSocket serverSocket = new ServerSocket(1234);
 
-
+/*
 		if(Desktop.isDesktopSupported())
 			Desktop.getDesktop().browse(new URI("http://localhost:1234"));
 		else
 			System.out.println("Please direct your browser to http://localhost:1234.");
-
+*/
 
 		while(true)
 		{
@@ -52,14 +52,13 @@ class Main {
 				
 				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
 					post = true;
-					
 					String s = inputLine;
 					s = inputLine.substring(6, inputLine.length());
 					String[] parts = s.split(" ");
 					s = parts[0];
 					file = new File(s);
 					mime = Files.probeContentType(file.toPath());
-				} else {
+				} else if(!post){
 					file = new File("stuff.html");
 					mime = Files.probeContentType(file.toPath());
 				}
@@ -75,18 +74,20 @@ class Main {
 				// Read the POST content
 				postedContent = new char[contentLength];
 				in.read(postedContent, 0, contentLength);
+				System.out.println(postedContent);
 			}
 
 			// Whatever data we want to send
+			System.out.println(file.toString());
 			String payload = readFile(file.toString());
 			
 
 			// Send HTTP headers
 			System.out.println("Sending a response...");
 			out.print("HTTP/1.1 200 OK\r\n");
-			out.print("Content-Type: " + "text/html" + "\r\n");
+			out.print("Content-Type: " + "text/html " + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
-			out.print("Set-Cookie: " + "some cookie" + "\r\n");
+			out.print("Set-Cookie: " + "some cookie " + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 
