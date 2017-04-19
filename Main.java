@@ -22,18 +22,22 @@ class Main {
 			return new String("Oops, we got: " + ioe.getMessage() + " instead.");
 		}
 	}
+	
+	static void writeFile(File f, char[] data) throws IOException {
+		try {
+			Writer out = new BufferedWriter(new FileWriter(f, true));
+			out.append(new String(data));
+			out.append("\r\n");
+			out.close();
+		} catch (IOException ioe) {
+			System.out.println(ioe);
+		}
+	}
 
 	public static void main(String[] args) throws Exception {
 
 		// Listen for a connection from a client
 		ServerSocket serverSocket = new ServerSocket(1234);
-
-/*
-		if(Desktop.isDesktopSupported())
-			Desktop.getDesktop().browse(new URI("http://localhost:1234"));
-		else
-			System.out.println("Please direct your browser to http://localhost:1234.");
-*/
 
 		while(true)
 		{
@@ -47,9 +51,8 @@ class Main {
 			boolean post = false;
 			int contentLength = 0;
 			while ((inputLine = in.readLine()) != null) {
-
-				//StringTokenizer st = new StringTokenizer(inputLine, " ");
 				
+				// Check if POST or GET request
 				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
 					post = true;
 					String s = inputLine;
@@ -59,26 +62,32 @@ class Main {
 					file = new File(s);
 					mime = Files.probeContentType(file.toPath());
 				} else if(!post){
+					
+					// Load the default page
 					file = new File("stuff.html");
 					mime = Files.probeContentType(file.toPath());
 				}
+				
 				if(inputLine.length() >= 14 && inputLine.substring(0, 14).equals("Content-Length"))
 					contentLength = Integer.parseInt(inputLine.substring(16));
 				System.out.println("The client said: " + inputLine);
-				if(inputLine.length() < 2)
+				if(inputLine.length() < 2) {
 					break;
+				}
 			}
+			
 			char[] postedContent = null; 
 			if(post && contentLength > 0)
 			{
 				// Read the POST content
 				postedContent = new char[contentLength];
 				in.read(postedContent, 0, contentLength);
-				System.out.println(postedContent);
+				
+				// Get the data to write
+				writeFile(file, postedContent);
 			}
 
 			// Whatever data we want to send
-			System.out.println(file.toString());
 			String payload = readFile(file.toString());
 			
 
@@ -87,7 +96,7 @@ class Main {
 			out.print("HTTP/1.1 200 OK\r\n");
 			out.print("Content-Type: " + "text/html " + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
-			out.print("Set-Cookie: " + "some cookie " + "\r\n");
+			//out.print("Set-Cookie: " + "some cookie " + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 
@@ -97,22 +106,3 @@ class Main {
 		}
 	}
 }
-
-/*
- * 				while(st.hasMoreTokens()) {
-					String s = st.nextToken();
-					if(s.contains("/")) {
-						System.out.println(s);
-						s = s.substring(1);
-						if(s.equals("")) {
-							file = new File("stuff.html");
-							mime = Files.probeContentType(file.toPath());
-						} else {
-							file = new File(s);
-							System.out.println(s);
-							mime = Files.probeContentType(file.toPath());
-						}
-					}
-						
-				}
-*/

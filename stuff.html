@@ -10,23 +10,26 @@
     <div style="width: 800px; height: 500px;">
 
       <!-- Game portion of the interface -->
-      <div id="game" oncontextmenu="return false;" style="width: 500px; height: 500px; float: left; border:none; overflow: hidden;" scrolling="no">
+      <div id="gameDiv" oncontextmenu="return false;" style="width: 500px; height: 500px; float: left; border:none; overflow: hidden;" scrolling="no">
         <canvas id="myCanvas" width="500" height="500" background-color="#87CEEB"></canvas>
       </div>
 
 
       <!-- Chatting portion of the interface -->
-      <div id="chat" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
+      <div id="chatDiv" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
 
         <!-- Chat Window -->
-        <form>
-          <select id="history" size="20" form="chat" style="height: 100%; width: 100%; overflow: hidden;">
-          </select>
+        <form id="chatForm">
+           <select id="chatSelect" size="20" form="chatForm" style="height: 100%; width: 100%; overflow: hidden;"> -->
+           </select>
+         </form>
 
           <!-- Chatbox and Send button prototypes -->
-          <input type="text" name="message" id="msg">
-          <input type="submit" onclick="sendMessage()" value="Send">
-        </form>
+
+
+        <input type="text" id="msg">
+        <button type="submit" onclick="sendMessage()">Send</button>
+
 
       </div>
     </div>
@@ -55,49 +58,44 @@
         request.open('POST', url, true);
         request.setRequestHeader('Content-Type',
           'application/x-www-form-urlencoded');
+        console.log(payload);
         request.send(payload);
       }
 
       function httpGet(url, callback) {
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                callback(xmlHttp.responseText);
+        var getRequest = new XMLHttpRequest();
+        getRequest.onreadystatechange = function() {
+            if (getRequest.readyState == 4 && getRequest.status == 200)
+                callback(getRequest.responseText);
         }
-        xmlHttp.open("GET", url, true); // true for asynchronous
-        xmlHttp.send(null);
+        getRequest.open("get", url, true); // true for asynchronous
+        getRequest.send();
       }
 
       function updateFrontEnd(response) {
-
-        document.getElementById("history").innerHTML='<object type="text/html" data="chat_history.html"></object>';
-        console.log(reponse);
-        //console.log(response.responseText);
-        var x = document.getElementById("history");
-        var option = document.createElement("option");
-        //option.text = response.value; //response.responseText;
-        x.add(response);
-  		  x.scrollTop = x.scrollHeight;
+        console.log(response);
+        //document.getElementById("chatHistory").src = "chat_history.html";
+        var x = document.getElementById("chatSelect");
+        x.innerHTML='<object type="text/html" data="chat_history.html"></object>';
+        x.scrollTop = x.scrollHeight;
       }
 
       function sendToBackEnd(data) {
-        console.log(data);
-        httpPost("stuff.html", "<option>" + data.value + "</option>", updateFrontEnd);
+        httpPost("chat_history.html", "<option>" + data.value + "</option>", updateFrontEnd);
         //httpGet("stuff.html", cb);
       }
 
-      //
-      // The implementation for the chat mechanic
-      //
-
+      // Send a chat message to the server
       function sendMessage() {
         var msg = document.getElementById("msg");
-        console.log(msg.value);
         if(msg.value != "") {
           sendToBackEnd(msg);
           msg.value = "";
         }
       }
+
+      // Ping the server for new messages on an interval
+      //let timer = setInterval(function() { httpGet("chat_history.html", updateFrontEnd) }, 1200);
     </script>
   </body>
 </html>
