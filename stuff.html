@@ -18,18 +18,14 @@
       <!-- Chatting portion of the interface -->
       <div id="chatDiv" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
 
-        <!-- Chat Window -->
-        <form id="chatForm">
-           <select id="chatSelect" size="20" form="chatForm" style="height: 100%; width: 100%; overflow: hidden;"> -->
-           </select>
-         </form>
+        <!-- Empty Div for data pulled from backend -->
+        <div id="insert-here"></div>
 
-          <!-- Chatbox and Send button prototypes -->
-
-
-        <input type="text" id="msg">
-        <button type="submit" onclick="sendMessage()">Send</button>
-
+        <!-- div for the message box and send button -->
+        <div id="input">
+          <input type="text" id="msg">
+          <button type="submit" onclick="sendMessage()">Send</button>
+        </div>
 
       </div>
     </div>
@@ -37,9 +33,33 @@
     <script type="text/javascript">
 
       //
-      // Communicate with the Web Server
+      // JavaScript
       //
 
+      // Uniquely identifying users will come with the extra credit part
+      // as well as N users
+      var id = Math.round(Math.random());
+
+      // Create the elements for the chat window on the fly, for manipulation later
+      var htmlBlock1 = '<form id="chatForm"><select id="chatSelect" size="20" style="height: 100%; width: 100%; overflow: hidden;">';
+      var htmlBlock2 = '</select></form>';
+      var container = document.getElementById("insert-here");
+      var chatWindow = create(htmlBlock1 + htmlBlock2);
+      container.appendChild(chatWindow);
+
+      // Generate HTML elements from a string
+      function create(htmlStr) {
+        var frag = document.createDocumentFragment(),
+            temp = document.createElement('div');
+        temp.innerHTML = htmlStr;
+
+        while (temp.firstChild) {
+          frag.appendChild(temp.firstChild);
+        }
+        return frag;
+      }
+
+      // Post to the server for the new data
       function httpPost(url, payload, callback) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
@@ -58,31 +78,19 @@
         request.open('POST', url, true);
         request.setRequestHeader('Content-Type',
           'application/x-www-form-urlencoded');
-        console.log(payload);
         request.send(payload);
       }
 
-      function httpGet(url, callback) {
-        var getRequest = new XMLHttpRequest();
-        getRequest.onreadystatechange = function() {
-            if (getRequest.readyState == 4 && getRequest.status == 200)
-                callback(getRequest.responseText);
-        }
-        getRequest.open("get", url, true); // true for asynchronous
-        getRequest.send();
-      }
-
+      // Update the HTML on the page presented to the user
       function updateFrontEnd(response) {
-        console.log(response);
-        //document.getElementById("chatHistory").src = "chat_history.html";
-        var x = document.getElementById("chatSelect");
-        x.innerHTML='<object type="text/html" data="chat_history.html"></object>';
+        container.innerHTML = htmlBlock1 + response + htmlBlock2;
+        let x = document.getElementById("chatSelect");
         x.scrollTop = x.scrollHeight;
       }
 
+      // Send the POST request back to the server
       function sendToBackEnd(data) {
-        httpPost("chat_history.html", "<option>" + data.value + "</option>", updateFrontEnd);
-        //httpGet("stuff.html", cb);
+        httpPost("chat_history.html", '<option>' + data.value + "</option>", updateFrontEnd);
       }
 
       // Send a chat message to the server
@@ -95,7 +103,7 @@
       }
 
       // Ping the server for new messages on an interval
-      //let timer = setInterval(function() { httpGet("chat_history.html", updateFrontEnd) }, 1200);
+      let timer = setInterval(function() { httpPost("chat_history.html", "", updateFrontEnd) }, 1200);
     </script>
   </body>
 </html>

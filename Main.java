@@ -8,10 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.*;
 import java.net.URI;
+import java.util.Random;
 
 class Main {
 	static File file;
 	static String mime;
+	static Random random = new Random();
 	//String name = new String(file.toString());
 
 	// Load the page from the webserver
@@ -61,9 +63,7 @@ class Main {
 					s = parts[0];
 					file = new File(s);
 					mime = Files.probeContentType(file.toPath());
-				} else if(!post){
-					
-					// Load the default page
+				} else if(!post) {
 					file = new File("stuff.html");
 					mime = Files.probeContentType(file.toPath());
 				}
@@ -96,7 +96,7 @@ class Main {
 			out.print("HTTP/1.1 200 OK\r\n");
 			out.print("Content-Type: " + "text/html " + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
-			//out.print("Set-Cookie: " + "some cookie " + "\r\n");
+			out.print("Set-Cookie: " + " cookie " + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 
