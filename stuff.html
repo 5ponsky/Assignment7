@@ -66,8 +66,11 @@
           if(request.readyState == 4) {
             if(request.status == 200) {
               cookie = document.cookie;
-              id = cookie.split("=")[1];
-              console.log(id);
+              console.log(cookie);
+              cookie = cookie.split(";")[0];
+              var cookie1 = cookie.substring(cookie.lastIndexOf("=")+1,cookie.lastIndexOf(";"));
+              console.log(cookie1);
+              document.cookie = cookie;
               callback(request.responseText, id);
             } else {
               if(request.status == 0 && request.statusText.length == 0)
@@ -85,7 +88,7 @@
       }
 
       // Update the HTML on the page presented to the user
-      function updateFrontEnd(response, id) {
+      function updateFrontEnd(response) {
         container.innerHTML = htmlBlock1 + response + htmlBlock2;
         let x = document.getElementById("chatSelect");
         x.scrollTop = x.scrollHeight;
@@ -93,7 +96,8 @@
 
       // Send the POST request back to the server
       function sendToBackEnd(data) {
-        httpPost("chat_history.html", '<option id="' + id.value + '">' + data.value + "</option>", updateFrontEnd);
+        document.cookie = "";
+        httpPost("chat_history.html", '<option id="' + document.cookie + '">' + data.value + "</option>", updateFrontEnd);
       }
 
       // Send a chat message to the server

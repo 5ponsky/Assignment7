@@ -2,12 +2,10 @@
  // Bare-bones Java web server
 //
 
-import java.awt.Desktop;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.*;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -77,7 +75,8 @@ class Main {
 				if(inputLine.length() >= 6 && inputLine.substring(0, 7).equals("Cookie:")) {
 					String s = inputLine;
 					s = inputLine.substring(8, inputLine.length());
-					if(s.equals("null")) {
+					if(s.length() < 7) {
+						System.out.println(id);
 						cookie = new String("userID=" + id);
 						users.add(cookie);
 						++id;
