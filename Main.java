@@ -8,12 +8,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.*;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Random;
 
 class Main {
 	static File file;
 	static String mime;
 	static Random random = new Random();
+	static ArrayList<String> users = new ArrayList<String>();
+	static int id = 1;
+	static String cookie;
 	//String name = new String(file.toString());
 
 	// Load the page from the webserver
@@ -68,6 +72,18 @@ class Main {
 					mime = Files.probeContentType(file.toPath());
 				}
 				
+				// If we don't have a cookie, give the user a cookie/ID, 
+				//and add them to the user list
+				if(inputLine.length() >= 6 && inputLine.substring(0, 7).equals("Cookie:")) {
+					String s = inputLine;
+					s = inputLine.substring(8, inputLine.length());
+					if(s.equals("null")) {
+						cookie = new String("userID=" + id);
+						users.add(cookie);
+						++id;
+					}
+				}
+				
 				if(inputLine.length() >= 14 && inputLine.substring(0, 14).equals("Content-Length"))
 					contentLength = Integer.parseInt(inputLine.substring(16));
 				System.out.println("The client said: " + inputLine);
@@ -96,7 +112,7 @@ class Main {
 			out.print("HTTP/1.1 200 OK\r\n");
 			out.print("Content-Type: " + "text/html " + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
-			out.print("Set-Cookie: " + " cookie " + "\r\n");
+			out.print("Set-Cookie: " + cookie + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 

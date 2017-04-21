@@ -36,15 +36,15 @@
       // JavaScript
       //
 
-      // Uniquely identifying users will come with the extra credit part
-      // as well as N users
-      var id = Math.round(Math.random());
+      // Used to obtain the user ID from the cookie ("UserID=id")
+      var id, cookie;
 
       // Create the elements for the chat window on the fly, for manipulation later
       var htmlBlock1 = '<form id="chatForm"><select id="chatSelect" size="20" style="height: 100%; width: 100%; overflow: hidden;">';
       var htmlBlock2 = '</select></form>';
       var container = document.getElementById("insert-here");
       var chatWindow = create(htmlBlock1 + htmlBlock2);
+      //var chatTemplate =
       container.appendChild(chatWindow);
 
       // Generate HTML elements from a string
@@ -65,7 +65,10 @@
         request.onreadystatechange = function() {
           if(request.readyState == 4) {
             if(request.status == 200) {
-              callback(request.responseText);
+              cookie = document.cookie;
+              id = cookie.split("=")[1];
+              console.log(id);
+              callback(request.responseText, id);
             } else {
               if(request.status == 0 && request.statusText.length == 0)
                 console.log("No partner to send message to!");
@@ -82,7 +85,7 @@
       }
 
       // Update the HTML on the page presented to the user
-      function updateFrontEnd(response) {
+      function updateFrontEnd(response, id) {
         container.innerHTML = htmlBlock1 + response + htmlBlock2;
         let x = document.getElementById("chatSelect");
         x.scrollTop = x.scrollHeight;
@@ -90,7 +93,7 @@
 
       // Send the POST request back to the server
       function sendToBackEnd(data) {
-        httpPost("chat_history.html", '<option>' + data.value + "</option>", updateFrontEnd);
+        httpPost("chat_history.html", '<option id="' + id.value + '">' + data.value + "</option>", updateFrontEnd);
       }
 
       // Send a chat message to the server
