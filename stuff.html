@@ -14,20 +14,20 @@
         <canvas id="myCanvas" width="500" height="500" background-color="#87CEEB"></canvas>
       </div>
 
-
-      <!-- Chatting portion of the interface -->
       <div id="chatDiv" style="width: 300px; height: 500px; border:none; overflow: hidden;" scrolling="no">
 
-        <!-- Empty Div for data pulled from backend -->
-        <div id="insert-here"></div>
+        <div id="insert-here">
+          <p style="float: center;">Enter A Username</p>
+        </div>
 
         <!-- div for the message box and send button -->
         <div id="input">
-          <input type="text" id="msg">
+          <input type="text" id="msg" style="float: bottom;">
           <button type="submit" onclick="sendMessage()">Send</button>
         </div>
-
       </div>
+
+      <!-- Chatting portion of the interface -->
     </div>
 
     <script type="text/javascript">
@@ -42,7 +42,7 @@
       // Create the elements for the chat window on the fly, for manipulation later
       var htmlBlock1 = '<form id="chatForm"><select id="chatSelect" size="20" style="height: 100%; width: 100%; overflow: hidden;">';
       var htmlBlock2 = '</select></form>';
-      var container = document.getElementById("insert-here");
+      var container = document.getElementById("chatSelect");
       var chatWindow = create(htmlBlock1 + htmlBlock2);
       //var chatTemplate =
       container.appendChild(chatWindow);
@@ -95,22 +95,53 @@
       }
 
       // Send the POST request back to the server
-      function sendToBackEnd(data) {
-        document.cookie = "";
-        httpPost("chat_history.html", '<option id="' + document.cookie + '">' + data.value + "</option>", updateFrontEnd);
+      function sendToBackEnd(url, data) {
+        httpPost(url, data, updateFrontEnd);
       }
 
+
+
       // Send a chat message to the server
-      function sendMessage() {
+      function sendMessage(payload) {
         var msg = document.getElementById("msg");
         if(msg.value != "") {
+          var message = '<option id="' + document.cookie + '">' + msg.value + "</option>"
+          httpPost("chat_history.html", message, updateFrontEnd);
+          msg.value = "";
+        }
+      }
+
+      // Send a username to the backend
+      function sendChat() {
+        var msg = document.getElementById("msg");
+        if(msg.value != "") {
+          httpPost("chat_history.html", "?" + msg.value, isValid);
           sendToBackEnd(msg);
           msg.value = "";
         }
       }
 
+      // Prevent the user from "entering" the chat room until they provid a username
+      function requestUsername() {
+        if(validUsername(name)) {
+          document.cookie = name;
+          //var chatFrame = document.getElementById("ChatFrame");
+          //chatFrame.setAttribute("src", "chat_history.html");
+          sendToBackEnd(document.cookie);
+        }
+      }
+
+      function validUsername(name) {
+        httpPost("?", name, updateFrontEnd)
+        if("TRUE") {
+
+        } else {
+
+        }
+      }
+
       // Ping the server for new messages on an interval
-      let timer = setInterval(function() { httpPost("chat_history.html", "", updateFrontEnd) }, 1200);
+      let timer = setInterval(function() { httpPost(screen, "", updateFrontEnd) }, 1200);
     </script>
   </body>
 </html>

@@ -37,6 +37,12 @@ class Main {
 			System.out.println(ioe);
 		}
 	}
+	
+	static boolean checkUsername() {
+		for(int i = 0; i < users.length; ++i) {
+			if()
+		}
+	}
 
 	public static void main(String[] args) throws Exception {
 
@@ -58,11 +64,17 @@ class Main {
 				
 				// Check if POST or GET request
 				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
-					post = true;
 					String s = inputLine;
 					s = inputLine.substring(6, inputLine.length());
 					String[] parts = s.split(" ");
 					s = parts[0];
+					
+					if(s.equals("/?")) {
+						System.out.println("asdfasdfasdf");
+						checkUsername();
+					}
+					
+					post = true;
 					file = new File(s);
 					mime = Files.probeContentType(file.toPath());
 				} else if(!post) {
