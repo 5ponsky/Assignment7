@@ -38,10 +38,14 @@ class Main {
 		}
 	}
 	
-	static boolean checkUsername() {
-		for(int i = 0; i < users.length; ++i) {
-			if()
+	static boolean freeUsername(char[] name) {
+		for(int i = 0; i < users.size(); ++i) {
+			System.out.println(users.get(i) + " compared to " + (new String(name)));
+			if(users.get(i).equals(new String(name))) {
+				return false;
+			}
 		}
+		return true;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -58,25 +62,26 @@ class Main {
 
 			// Receive the request from the client
 			String inputLine;
-			boolean post = false;
+			boolean post = false; // Is it a POST request?
+			boolean query = false; // Are we querying for free usernames?
+			boolean free = false; // Is the queried username available?
 			int contentLength = 0;
 			while ((inputLine = in.readLine()) != null) {
 				
 				// Check if POST or GET request
 				if(inputLine.length() >= 4 && inputLine.substring(0, 4).equals("POST")) {
+					post = true;
 					String s = inputLine;
 					s = inputLine.substring(6, inputLine.length());
 					String[] parts = s.split(" ");
 					s = parts[0];
 					
-					if(s.equals("/?")) {
-						System.out.println("asdfasdfasdf");
-						checkUsername();
+					if(s.equals("?")) {
+						query = true;
+					} else {
+						file = new File(s);
+						mime = Files.probeContentType(file.toPath());
 					}
-					
-					post = true;
-					file = new File(s);
-					mime = Files.probeContentType(file.toPath());
 				} else if(!post) {
 					file = new File("stuff.html");
 					mime = Files.probeContentType(file.toPath());
@@ -111,11 +116,26 @@ class Main {
 				in.read(postedContent, 0, contentLength);
 				
 				// Get the data to write
-				writeFile(file, postedContent);
+				if(query) {
+					if(freeUsername(postedContent)) {
+						users.add(new String(postedContent));
+						free = true;
+					}
+				} else {
+					writeFile(file, postedContent);
+				}
 			}
 
 			// Whatever data we want to send
-			String payload = readFile(file.toString());
+			String payload;
+			if(query) {
+				if(free)
+					payload = "TRUE";
+				else
+					payload = "FALSE";
+			} else {
+				payload = readFile(file.toString());
+			}
 			
 
 			// Send HTTP headers
@@ -123,7 +143,7 @@ class Main {
 			out.print("HTTP/1.1 200 OK\r\n");
 			out.print("Content-Type: " + "text/html " + "\r\n");
 			out.print("Content-Length: " + Integer.toString(payload.length()) + "\r\n");
-			out.print("Set-Cookie: " + cookie + "\r\n");
+			//out.print("Set-Cookie: " + cookie + "\r\n");
 			out.print("Connection: close\r\n");
 			out.print("\r\n");
 
